@@ -173,7 +173,7 @@ def show():
             </div>
             <div class="item">
                 <label>5/6. 四肢运动 (痛刺激) <span id="cv56" class="score-tag score-high">16</span></label>
-                <select id="cs56" onchange="calc()"><option value="16">16 - 四肢均无动作</option><option value="12">12 - 仅单侧有动作</option><option value="8">8 - 仅双下肢有动作</option><option value="4">4 - 三肢无动作</option></select>
+                <select id="cs56" onchange="calc()"><option value="16">16 - 四肢均无动作</option><option value="12">12 - 仅单侧有动作</option><option value="8">8 - 仅双下肢有动作</option><option value="4">4 - 三肢有动作</option></select>
             </div>
         </div>
       </div>
