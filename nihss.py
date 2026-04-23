@@ -2,7 +2,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 def show():
-    # 局部页面标题（可选，如果不显示两个标题可以注释掉）
+    # 局部页面标题
     st.markdown("### NIHSS 临床自动评分系统 (NFC 2026 版)")
 
     # 完整 HTML/JS/CSS 逻辑
@@ -137,7 +137,7 @@ def show():
           <div class="grid-2">
             <div class="item"><label>5a. 左上肢 <span id="v5a" class="score-tag score-0">0</span></label><select id="s5a" onchange="calc()"><option value="0">0 - 无漂移</option><option value="1">1 - 漂移</option><option value="2">2 - 抗重力下落</option><option value="3">3 - 不能抗重力</option><option value="4">4 - 无动作</option></select></div>
             <div class="item"><label>5b. 右上肢 <span id="v5b" class="score-tag score-0">0</span></label><select id="s5b" onchange="calc()"><option value="0">0 - 无漂移</option><option value="1">1 - 漂移</option><option value="2">2 - 抗重力下落</option><option value="3">3 - 不能抗重力</option><option value="4">4 - 无动作</option></select></div>
-            <div class="item"><label>6a. 左下肢 <span id="v5a_l" class="score-tag score-0" style="display:none">0</span><span id="v6a" class="score-tag score-0">0</span></label><select id="s6a" onchange="calc()"><option value="0">0 - 无漂移</option><option value="1">1 - 漂移</option><option value="2">2 - 抗重力下落</option><option value="3">3 - 不能抗重力</option><option value="4">4 - 无动作</option></select></div>
+            <div class="item"><label>6a. 左下肢 <span id="v6a" class="score-tag score-0">0</span></label><select id="s6a" onchange="calc()"><option value="0">0 - 无漂移</option><option value="1">1 - 漂移</option><option value="2">2 - 抗重力下落</option><option value="3">3 - 不能抗重力</option><option value="4">4 - 无动作</option></select></div>
             <div class="item"><label>6b. 右下肢 <span id="v6b" class="score-tag score-0">0</span></label><select id="s6b" onchange="calc()"><option value="0">0 - 无漂移</option><option value="1">1 - 漂移</option><option value="2">2 - 抗重力下落</option><option value="3">3 - 不能抗重力</option><option value="4">4 - 无动作</option></select></div>
           </div>
         </div>
@@ -173,7 +173,7 @@ def show():
             </div>
             <div class="item">
                 <label>5/6. 四肢运动 (痛刺激) <span id="cv56" class="score-tag score-high">16</span></label>
-                <select id="cs56" onchange="calc()"><option value="16">16 - 四肢均无动作</option><option value="12">12 - 仅单侧有动作</option><option value="8">8 - 仅双下肢有动作</option><option value="4">4 - 三肢有动作</option></select>
+                <select id="cs56" onchange="calc()"><option value="16">16 - 四肢均无动作</option><option value="12">12 - 仅单侧有动作</option><option value="8">8 - 仅双下肢有动作</option><option value="4">4 - 三肢无动作</option></select>
             </div>
         </div>
       </div>
@@ -215,12 +215,9 @@ def show():
             const m5b = parseInt(document.getElementById('s5b').value) || 0;
             const m6a = parseInt(document.getElementById('s6a').value) || 0;
             const m6b = parseInt(document.getElementById('s6b').value) || 0;
-            
             const hint = document.getElementById('ataxia-hint');
             const s7 = document.getElementById('s7');
             
-            // 逻辑处理：若选择了一个或两个以上有，但对应肢体瘫痪，则需调整输入值
-            let ataxiaVal = parseInt(s7.value);
             let disabledCount = 0;
             if (m5a >= 3) disabledCount++;
             if (m5b >= 3) disabledCount++;
@@ -250,3 +247,22 @@ def show():
             cids.forEach(id => {
                 const el = document.getElementById(id);
                 const val = parseInt(el ? el.value : 0) || 0;
+                total += val;
+                const tag = document.getElementById('cv' + id.substring(2));
+                if(tag) tag.innerText = val;
+            });
+        }
+        document.getElementById('total-score').innerText = total;
+        let sev = total >= 21 ? "重度卒中" : total >= 16 ? "中重度卒中" : total >= 5 ? "中度卒中" : total >= 1 ? "轻度卒中" : "正常";
+        document.getElementById('severity-label').innerText = sev;
+    }
+    window.onload = function() { setCurrentTime(); calc(); };
+    </script>
+    </body>
+    </html>
+    """
+
+    components.html(html_content, height=1800, scrolling=True)
+
+if __name__ == "__main__":
+    show()
