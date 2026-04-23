@@ -2,23 +2,62 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>神经功能整合中心</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NFC 神经功能整合中心</title>
     <style>
-        body { font-family: sans-serif; padding: 40px; line-height: 1.6; }
-        h1 { color: #2c3e50; }
-        .link-section { margin-top: 20px; }
-        a { color: #3498db; text-decoration: none; font-size: 18px; }
-        a:hover { text-decoration: underline; }
+        :root { --primary: #3498db; --dark: #2c3e50; --bg: #f4f7f6; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .container { max-width: 900px; width: 100%; }
+        header { text-align: center; padding: 40px 0; background: var(--dark); color: white; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h1 { margin: 0; font-size: 2.5rem; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+        .card { background: white; padding: 25px; border-radius: 10px; border-top: 5px solid var(--primary); transition: transform 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-decoration: none; color: inherit; display: block; }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .card h3 { margin: 0 0 10px 0; color: var(--dark); display: flex; align-items: center; }
+        .card p { margin: 0; color: #7f8c8d; font-size: 0.95rem; }
+        .icon { margin-right: 10px; font-size: 1.5rem; }
+        footer { margin-top: 50px; text-align: center; color: #bdc3c7; font-size: 0.8rem; }
     </style>
 </head>
 <body>
-    <h1>神经功能整合中心 - 项目导航</h1>
-    <div class="link-section">
-        <ul>
-            <li><a href="溶栓决策/Thrombolysis.py">溶栓决策代码 (Python)</a></li>
-            <li><a href="抗凝策略医生版/抗凝策略医生版.py">抗凝策略医生版 (Python)</a></li>
-        </ul>
+
+<div class="container">
+    <header>
+        <h1>🧠 NFC 神经功能整合中心</h1>
+        <p>临床决策辅助系统 | v12.0</p>
+    </header>
+
+    <div class="grid">
+        <a href="这里替换为_NIHSS评分_的Streamlit链接" class="card" target="_blank">
+            <h3><span class="icon">⚖️</span> NIHSS 自动评分</h3>
+            <p>标准化神经功能缺损评估，自动计算分值及临床分型。</p>
+        </a>
+
+        <a href="https://nfc-tianhuijun-2026-zpodbcmynf9ingup2mjghg.streamlit.app/" class="card" target="_blank">
+            <h3><span class="icon">⚡</span> 急诊溶栓决策</h3>
+            <p>基于发病时间与禁忌症筛查，辅助制定静脉溶栓方案。</p>
+        </a>
+
+        <a href="这里替换为_肉毒毒素_的Streamlit链接" class="card" target="_blank">
+            <h3><span class="icon">💉</span> 肉毒毒素管理</h3>
+            <p>肌张力障碍及肌痉挛注射位点精准规划与随访管理。</p>
+        </a>
+
+        <a href="这里替换为_患者抗凝_的Streamlit链接" class="card" target="_blank">
+            <h3><span class="icon">❤️</span> 患者抗凝自测</h3>
+            <p>面向患者的服药提醒与出血风险自我监测工具。</p>
+        </a>
+
+        <a href="这里替换为_医生抗凝_的Streamlit链接" class="card" target="_blank">
+            <h3><span class="icon">👨‍⚕️</span> 医生抗凝决策</h3>
+            <p>房颤及瓣膜病抗凝策略优化，基于风险评分推荐药物。</p>
+        </a>
     </div>
-    <p>提示：如需运行交互式工具，请访问 Streamlit 平台。</p>
+
+    <footer>
+        © 2026 神经功能整合中心 | 田慧军医生作品
+    </footer>
+</div>
+
 </body>
 </html>
