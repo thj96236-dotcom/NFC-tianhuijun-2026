@@ -2,8 +2,8 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 def show():
-    # 局部页面标题（可选，如果不希望显示两个标题可以注释掉）
-    st.markdown("### NIHSS 临床自动评分系统 (NFC 2026 版)")
+    # 局部页面标题
+    st.markdown("### NIHSS 临床自动评分 system (NFC 2026 版)")
 
     # 完整 HTML/JS/CSS 逻辑
     html_content = """
@@ -127,7 +127,7 @@ def show():
 
         <div class="card">
           <div class="card-title">2-3. 眼动与视野</div>
-          <div class="item"><label>2. 最佳凝视 <span id="v2" class="score-tag score-0">0</span></label><select id="s2" onchange="calc()"><option value="0">0 - 正常</option><option value="1">1 - 部分麻痹</option><option value="2">2 - 完全麻痹</option></select></div>
+          <div class="item"><label>2. 最佳凝视 <span id="v2" class="score-tag score-0">0</span></label><select id="s2" onchange="calc()"><option value="0">0 - 正常</option><option value="1">1 - 部分凝视麻痹： 一眼或双眼出现水平性眼球运动异常（如凝视麻痹），但通过主动性或反射性刺激可以克服</option><option value="2">2 - 完全麻痹 出现强迫性眼球偏斜，且不能通过反射性活动克服</option></select></div>
           <div class="item"><label>3. 视野 <span id="v3" class="score-tag score-0">0</span></label><select id="s3" onchange="calc()"><option value="0">0 - 无缺失</option><option value="1">1 - 部分偏盲</option><option value="2">2 - 完全偏盲</option><option value="3">3 - 双侧偏盲</option></select></div>
         </div>
 
@@ -165,7 +165,7 @@ def show():
             <div class="card-title">昏迷必填项评估</div>
             <div class="item">
                 <label>2. 凝视 (眼头反射) <span id="cv2" class="score-tag score-0">0</span></label>
-                <select id="cs2" onchange="calc()"><option value="0">0 - 正常</option><option value="1">1 - 部分麻痹</option><option value="2">2 - 完全麻痹</option></select>
+                <select id="cs2" onchange="calc()"><option value="0">0 - 正常</option><option value="1">1 - 部分麻痹存在凝视异常，但可通过自主运动或反射性头眼运动纠正</option><option value="2">2 - 完全麻痹眼球偏向一侧，且不能被头眼反射纠正</option></select>
             </div>
             <div class="item">
                 <label>4. 面部动作 (痛刺激) <span id="cv4" class="score-tag score-high">3</span></label>
@@ -173,7 +173,7 @@ def show():
             </div>
             <div class="item">
                 <label>5/6. 四肢运动 (痛刺激) <span id="cv56" class="score-tag score-high">16</span></label>
-                <select id="cs56" onchange="calc()"><option value="16">16 - 四肢均无动作</option><option value="12">12 - 仅单侧有动作</option><option value="8">8 - 仅双下肢有动作</option><option value="4">4 - 三肢有动作</option></select>
+                <select id="cs56" onchange="calc()"><option value="16">16 - 四肢均无动作</option><option value="12">12 - 仅单侧有动作</option><option value="8">8 - 仅双下肢有动作</option><option value="4">4 - 三肢无动作</option></select>
             </div>
         </div>
       </div>
@@ -211,6 +211,23 @@ def show():
         const type = document.getElementById('p-type').value;
         let total = 0;
         if (type === 'normal') {
+            const m5a = parseInt(document.getElementById('s5a').value) || 0;
+            const m5b = parseInt(document.getElementById('s5b').value) || 0;
+            const m6a = parseInt(document.getElementById('s6a').value) || 0;
+            const m6b = parseInt(document.getElementById('s6b').value) || 0;
+            const s7 = document.getElementById('s7');
+            const hint = document.getElementById('ataxia-hint');
+
+            // 核心修改逻辑：肢体评分 >= 3，共济失调强制为0
+            if (m5a >= 3 || m5b >= 3 || m6a >= 3 || m6b >= 3) {
+                s7.value = "0";
+                s7.disabled = true;
+                hint.style.display = 'block';
+            } else {
+                s7.disabled = false;
+                hint.style.display = 'none';
+            }
+
             const ids = ['1a','1b','1c','2','3','4','5a','5b','6a','6b','7','8','9','10','11'];
             ids.forEach(id => {
                 const el = document.getElementById('s' + id);
@@ -242,6 +259,5 @@ def show():
 
     components.html(html_content, height=1800, scrolling=True)
 
-# 这样如果您直接运行此 py 文件也可以预览
 if __name__ == "__main__":
     show()
