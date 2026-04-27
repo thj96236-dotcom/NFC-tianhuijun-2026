@@ -1,4 +1,10 @@
+import sys
+import os
+# 这行代码的作用是告诉系统：如果在这个文件夹找不到模块，就去当前目录找
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 import streamlit as st
+#import streamlit as st
 from openai import OpenAI
 import json
 from datetime import datetime, timedelta
