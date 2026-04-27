@@ -77,13 +77,13 @@ def main():
             st.success("专业版已解锁")
         
         st.caption(f"设备识别码: {get_machine_id()}")
-        st.caption("版本：v14.0 Pro | 田慧军医生作品")
+        # 更新版本号至 v14.1，以匹配实时 DNT 更新
+        st.caption("版本：v14.1 Pro | 田慧军医生作品")
 
     # --- 逻辑分发 ---
     if choice == "🏠 系统首页":
         st.title("NFC 神经功能整合中心")
         st.info("欢迎使用临床决策辅助系统。请从左侧选择功能模块。")
-        # 2026 API 标准写法
         st.image("https://img.freepik.com/free-vector/brain-with-digital-circuit-lines_1017-30022.jpg")
 
     elif choice == "🪄 AI 智能解析 (新)":
@@ -100,7 +100,7 @@ def main():
                 st.warning("请输入文本。")
 
     elif choice == "⚡ 急诊溶栓决策":
-        # 核心：调用已经修复时间逻辑的子模块
+        # 此处调用已包含“实时跳动时间逻辑”的 thrombolysis.show()
         thrombolysis.show()
 
     elif choice == "⚖️ NIHSS 自动评分": 

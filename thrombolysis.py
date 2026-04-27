@@ -2,7 +2,7 @@ import streamlit as st
 from datetime import datetime, timedelta
 import hashlib
 import uuid
-import time
+import time  # 新增：用于处理实时刷新频率
 
 # --- 1. 核心权限工具函数 ---
 def get_machine_id():
@@ -45,7 +45,7 @@ def show():
         with st.expander("⏱️ 1. 质控时间轴 (DNT 管理)", expanded=True):
             t1, t2 = st.columns(2)
             
-            # 设置动态参考时刻
+            # 核心修改：设置动态参考时刻
             if st.session_state['needle_time'] is None:
                 current_ref_time = datetime.now()
                 is_locked = False
@@ -67,13 +67,17 @@ def show():
                 
                 if not is_locked:
                     st.write("**⚠️ 当前决策参考时刻 (实时)**")
-                    # 使用 subheader 显示动态跳动的时间感
-                    st.subheader(current_ref_time.strftime("%H:%M:%S"))
+                    # 修改建议：使用大号字体显示实时跳动的时间
+                    st.markdown(f"<h2 style='color: #ff4b4b;'>{current_ref_time.strftime('%H:%M:%S')}</h2>", unsafe_allow_html=True)
                     st.caption("系统正以当前时刻作为窗口评估基准")
                     
                     if st.button("💉 确认开始用药 (锁定 DNT)", type="primary", use_container_width=True):
                         st.session_state['needle_time'] = datetime.now()
                         st.rerun()
+                    
+                    # 关键修改：强制页面每秒重新运行，实现时间动态跳动
+                    time.sleep(1)
+                    st.rerun()
                 else:
                     st.success("**✅ 锁定 DNT 结果**")
                     final_dnt = int((current_ref_time - arrival_dt).total_seconds() / 60)
@@ -189,7 +193,7 @@ def show():
 
     # 页脚
     st.markdown("---")
-    st.markdown("<div style='text-align: center; color: gray; font-size: 0.8em; font-family: SimSun;'>© 2026 田慧军医生 | NFC Center (Stroke CDSS v14.0 Pro)</div>", unsafe_allow_html=True)
+    st.markdown("<div style='text-align: center; color: gray; font-size: 0.8em; font-family: SimSun;'>© 2026 田慧军医生 | NFC Center (Stroke CDSS v14.1 Pro)</div>", unsafe_allow_html=True)
 
 if __name__ == "__main__":
     if "config_check" not in st.session_state:
