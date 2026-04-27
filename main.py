@@ -77,8 +77,8 @@ def main():
             st.success("专业版已解锁")
         
         st.caption(f"设备识别码: {get_machine_id()}")
-        # 更新版本号至 v14.1，以匹配实时 DNT 更新
-        st.caption("版本：v14.1 Pro | 田慧军医生作品")
+        # 保持为 v14.0 Pro，确保与您的原始版本一致性
+        st.caption("版本：v14.0 Pro | 田慧军医生作品")
 
     # --- 逻辑分发 ---
     if choice == "🏠 系统首页":
@@ -100,7 +100,7 @@ def main():
                 st.warning("请输入文本。")
 
     elif choice == "⚡ 急诊溶栓决策":
-        # 此处调用已包含“实时跳动时间逻辑”的 thrombolysis.show()
+        # 正常调用溶栓模块
         thrombolysis.show()
 
     elif choice == "⚖️ NIHSS 自动评分": 

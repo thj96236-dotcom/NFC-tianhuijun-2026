@@ -2,7 +2,6 @@ import streamlit as st
 from datetime import datetime, timedelta
 import hashlib
 import uuid
-import time  # 新增：用于处理实时刷新频率
 
 # --- 1. 核心权限工具函数 ---
 def get_machine_id():
@@ -11,28 +10,15 @@ def get_machine_id():
 
 # --- 2. 主模块函数 ---
 def show():
-    if 'authenticated' not in st.session_state: 
-        st.session_state['authenticated'] = False
-    
     # 核心逻辑：管理 DNT 锁定状态
     if 'needle_time' not in st.session_state:
         st.session_state['needle_time'] = None
 
-    VALID_CODES = ["NFC2026", "TIAN888", "STROKE2026"] 
-
     st.title("🧠 急性缺血性卒中 (AIS) 专家决策中心")
     
-    # 侧边栏：授权管理
+    # --- 侧边栏仅保留重置按钮，删除重复的授权码输入框 ---
     with st.sidebar:
-        st.header("🔐 授权验证")
-        auth_code = st.text_input("🔑 输入专业版授权码", type="password", key="th_auth_key")
-        if auth_code in VALID_CODES:
-            st.session_state['authenticated'] = True
-            st.success("✨ 专业版已解锁")
-        
         st.divider()
-        st.info(f"设备识别码: {get_machine_id()}")
-        
         if st.button("🔄 重置/接诊新病人", use_container_width=True):
             st.session_state['needle_time'] = None
             st.rerun()
@@ -45,7 +31,7 @@ def show():
         with st.expander("⏱️ 1. 质控时间轴 (DNT 管理)", expanded=True):
             t1, t2 = st.columns(2)
             
-            # 核心修改：设置动态参考时刻
+            # 获取当前或锁定的参考时刻
             if st.session_state['needle_time'] is None:
                 current_ref_time = datetime.now()
                 is_locked = False
@@ -67,17 +53,12 @@ def show():
                 
                 if not is_locked:
                     st.write("**⚠️ 当前决策参考时刻 (实时)**")
-                    # 修改建议：使用大号字体显示实时跳动的时间
-                    st.markdown(f"<h2 style='color: #ff4b4b;'>{current_ref_time.strftime('%H:%M:%S')}</h2>", unsafe_allow_html=True)
+                    st.subheader(current_ref_time.strftime("%H:%M:%S"))
                     st.caption("系统正以当前时刻作为窗口评估基准")
                     
                     if st.button("💉 确认开始用药 (锁定 DNT)", type="primary", use_container_width=True):
                         st.session_state['needle_time'] = datetime.now()
                         st.rerun()
-                    
-                    # 关键修改：强制页面每秒重新运行，实现时间动态跳动
-                    time.sleep(1)
-                    st.rerun()
                 else:
                     st.success("**✅ 锁定 DNT 结果**")
                     final_dnt = int((current_ref_time - arrival_dt).total_seconds() / 60)
@@ -114,8 +95,8 @@ def show():
             rel_1 = st.checkbox("症状轻微且快速改善 (非致残性)")
             rel_2 = st.checkbox("妊娠期 / 近2周重大手术或创伤")
 
-        # 4. 专业版扩展评估
-        if st.session_state['authenticated']:
+        # 4. 专业版扩展评估 (从 session_state 获取 main.py 的授权状态)
+        if st.session_state.get('authenticated', False):
             with st.expander("🔬 4. 2026 影像不匹配 (Mismatch) 评估", expanded=True):
                 m1 = st.toggle("CTP 错配 (半暗带体积/梗死核心体积 > 1.8)")
                 m2 = st.toggle("MRI 错配 (DWI-FLAIR 不匹配 / 唤醒卒中)")
@@ -136,29 +117,21 @@ def show():
 
     # --- 3. 决策逻辑输出端 ---
     if st.button("🚀 启动溶栓决策预案", use_container_width=True):
-        
-        # A. 基础安全性拦截
         if any([abs_1, abs_2, abs_3, abs_4]):
             st.error("### ❌ 结论：存在绝对禁忌，禁止溶栓")
         elif bp_sys >= 185:
             st.warning("### ⚠️ 结论：当前血压过高 (≥185/110mmHg)，请先平稳降压。")
         elif blood_sugar < 2.7:
             st.warning("### ⚠️ 结论：低血糖表现，请纠正后再评估。")
-        
-        # B. 时间窗纠正逻辑
-        elif ont_val > 4.5 and not (st.session_state['authenticated'] and is_mismatch):
+        elif ont_val > 4.5 and not (st.session_state.get('authenticated', False) and is_mismatch):
             st.error(f"### ❌ 结论：超出标准时间窗 (ONT: {ont_val:.1f}h)")
-            st.info("提示：发病已超过标准 4.5h 窗口。若无专业版授权或 Mismatch 影像错配证据，不可溶栓。")
-
-        # C. 符合指征的决策产出
         else:
-            if not st.session_state['authenticated']:
+            if not st.session_state.get('authenticated', False):
                 st.success(f"### ✅ 结论：符合标准溶栓指征 (ONT: {ont_val:.1f}h)")
                 total = min(weight * 0.9, 90.0) if drug_choice == "rt-PA (爱通立)" else min(weight * 0.25, 25.0)
                 st.write(f"**{drug_choice} 推荐剂量：** {total:.2f} mg")
             else:
                 st.subheader("🔬 2026 指南深度分层决策报告")
-                
                 if 4.5 < ont_val <= 9.0:
                     st.success(f"【建议 1】ONT {ont_val:.1f}h。影像错配评估阳性，符合扩展窗溶栓指征。")
                 else:
@@ -166,10 +139,8 @@ def show():
 
                 if is_lvo:
                     st.warning("【建议 2】疑似大血管闭塞 (LVO)。推荐首选 TNK 溶栓以提高再通率，并准备桥接介入。")
-                
                 if nihss < 4:
                     st.warning("【建议 3】NIHSS < 4 分。请确认为非致残性卒中，必要时考虑双抗替代方案。")
-
                 if aspects_score < 7:
                     st.error(f"【建议 4】ASPECTS {aspects_score} 分。提示早期改变显著，溶栓后脑出血风险为高危分层。")
                 else:
@@ -191,12 +162,8 @@ def show():
                     st.write("- 目标：≤ 180/105 mmHg")
                     st.write("- 频次：前2h (q15min), 随后6h (q30min), 至24h (q1h)")
 
-    # 页脚
     st.markdown("---")
-    st.markdown("<div style='text-align: center; color: gray; font-size: 0.8em; font-family: SimSun;'>© 2026 田慧军医生 | NFC Center (Stroke CDSS v14.1 Pro)</div>", unsafe_allow_html=True)
+    st.markdown("<div style='text-align: center; color: gray; font-size: 0.8em; font-family: SimSun;'>© 2026 田慧军医生 | NFC Center (Stroke CDSS v14.0 Pro)</div>", unsafe_allow_html=True)
 
 if __name__ == "__main__":
-    if "config_check" not in st.session_state:
-        st.set_page_config(page_title="AIS 专家决策中心", layout="wide")
-        st.session_state.config_check = True
     show()
