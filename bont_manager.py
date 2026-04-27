@@ -2,51 +2,29 @@ import streamlit as st
 import pandas as pd
 import hashlib
 import uuid
-import platform  # 引入平台信息以增强 ID 稳定性
+import platform
 from datetime import datetime
 
-# --- 1. 商业授权与管理配置 (已取消功能限制) ---
+# --- 1. 商业授权与管理配置 ---
 SECRET_SALT = "PSS_PRO_2026_THJ"
 ADMIN_SUPER_PASS = "ADMIN999"
 
 def get_machine_id():
-    """
-    组合硬件特征生成唯一识别码。
-    加入 platform 信息是为了防止某些设备在切换网络时导致 uuid.getnode() 变化。
-    """
+    """组合硬件特征生成唯一识别码"""
     try:
-        # 融合 MAC 地址特征与计算机名称、处理器架构
         node = str(uuid.getnode())
         system_traits = platform.node() + platform.processor() + node
         return hashlib.sha256(system_traits.encode()).hexdigest()[:12].upper()
     except Exception:
-        # 万一获取失败，回退到原始基础逻辑
         node = uuid.getnode()
         return hashlib.sha256(str(node).encode()).hexdigest()[:12].upper()
 
 def generate_license(machine_id):
-    """
-    生成授权码的核心算法。
-    """
-    # 强制去除首尾空格并转大写，确保算法输入的纯净
+    """生成授权码的核心算法"""
     raw_data = machine_id.strip().upper() + SECRET_SALT
     return hashlib.sha256(raw_data.encode()).hexdigest()[:8].upper()
 
-def verify_license(user_input, machine_id):
-    """
-    验证授权码。
-    使用 generate_license 进行二次计算对比，确保验证逻辑与生成逻辑完全同步。
-    """
-    if not user_input:
-        return False
-    
-    # 获取正确的授权码进行对比
-    correct_code = generate_license(machine_id)
-    
-    # 消除用户输入时可能带入的空格或大小写差异
-    return user_input.strip().upper() == correct_code
-
-# --- 2. 核心数据库 (严格保留) ---
+# --- 2. 核心数据库 ---
 PSS_DB = {
     "上肢近端 (Proximal Upper Limb)": [
         {"肌肉名称": "胸大肌 (Pectoralis Major)", "范围": "50-150", "标准点数": 4},
@@ -100,42 +78,36 @@ SPASTICITY_PATTERNS = {
     "下肢-马蹄内翻足": ["腓肠肌", "比目鱼肌", "胫骨后肌", "踇长屈肌"]
 }
 
-# --- 4. 模块封装函数 (统一命名为 show，供 main.py 调用) ---
 def show():
     st.title("卒中后痉挛 (PSS) 全流程标准化注射管理系统")
     
     mid = get_machine_id()
-    # 【修订点 1】：默认开启专业版权限，使下肢选项立即可见
+    # 默认开启专业版权限
     st.session_state['is_pro'] = True
 
     with st.sidebar:
         st.header("🛡️ 系统信息")
         st.info(f"本机识别码: **{mid}**")
-        
-        # 仅保留品牌选择，授权逻辑作为隐藏功能保留或删除，此处设为不再拦截显示
         st.divider()
         brand = st.selectbox("肉毒毒素品牌", ["保妥适 (Botox)", "衡力 (Hengli)"], key="pss_brand")
 
-        # 保留管理员工具，仅供田医生内部调试使用
         with st.expander("🛠️ 管理员工具"):
             lic_input = st.text_input("管理员授权码", type="password", key="pss_lic_input")
             if lic_input == ADMIN_SUPER_PASS:
-                customer_mid = st.text_input("在此输入客户的【识别码】", key="admin_cust_mid")
+                customer_mid = st.text_input("客户识别码", key="admin_cust_mid")
                 if customer_mid:
                     new_code = generate_license(customer_mid)
-                    st.code(f"生成的授权码: {new_code}", language="text")
+                    st.code(f"授权码: {new_code}")
 
-    # 【修订点 2】：available_regs 不再进行 if/else 过滤，直接包含所有数据库区域
     available_regs = list(PSS_DB.keys())
 
     col_s, col_r = st.columns(2)
     with col_s: 
         side = st.radio("注射侧别", ["左侧 (Left)", "右侧 (Right)"], horizontal=True, key="pss_side")
     with col_r: 
-        scope = st.multiselect("评估区域", available_regs, default=available_regs[0] if available_regs else None, key="pss_scope")
+        scope = st.multiselect("评估区域", available_regs, default=available_regs[0], key="pss_scope")
 
     with st.expander("📖 常见痉挛模式参考"):
-        # 【修订点 3】：不再过滤“下肢”模式，全员可见
         for pat, mus in SPASTICITY_PATTERNS.items():
             st.info(f"**{pat}**：{', '.join(mus)}")
 
@@ -167,7 +139,7 @@ def show():
                 current_final_list.append({
                     "侧别": side, "区域": region, "肌肉名称": m["肌肉名称"],
                     "总剂量(U)": dose, "注射点数": m["标准点数"],
-                    "单点剂量": round(dose/m['标准点数'], 1) if dose > 0 else 0
+                    "单点剂量": round(dose/m['标准点数'], 1) if (dose > 0 and m['标准点数'] > 0) else 0
                 })
 
     if current_final_list:
@@ -185,10 +157,16 @@ def show():
 
         st.dataframe(df, use_container_width=True, hide_index=True)
         
-        # 【修订点 4】：直接开放导出功能，无需 pro 验证
-        st.download_button("📥 导出方案 (CSV)", df.to_csv(index=False).encode('utf-8-sig'), f"Summary_{side}.csv", key="pss_download")
+        # 2026 标准导出按钮
+        st.download_button(
+            label="📥 导出方案 (CSV)", 
+            data=df.to_csv(index=False).encode('utf-8-sig'), 
+            file_name=f"PSS_Injection_{side}_{datetime.now().strftime('%Y%m%d')}.csv", 
+            key="pss_download",
+            width="stretch" # 适应 2026 布局
+        )
     else:
-        st.info("请在上方勾选肌肉并录入剂量，汇总表将在此处自动生成。")
+        st.info("请在上方勾选肌肉并录入剂量。")
 
     st.markdown("---")
     st.markdown(
@@ -200,7 +178,6 @@ def show():
         unsafe_allow_html=True
     )
 
-# --- 5. 独立执行逻辑 ---
 if __name__ == "__main__":
     st.set_page_config(page_title="PSS BoNT-Manager", layout="wide")
     show()

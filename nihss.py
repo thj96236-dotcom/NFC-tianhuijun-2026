@@ -1,5 +1,5 @@
 import streamlit as st
-import streamlit.components.v1 as components
+import base64
 
 def show():
     # 局部页面标题
@@ -72,7 +72,7 @@ def show():
       .coma-box { background: #fff5f5; border: 1px solid #feb2b2; padding: 15px; border-radius: 8px; margin-bottom: 15px; color: #c53030; font-size: 13px; }
       
       @media print {
-        .header, .btn-row { display: none !important; }
+        .header, .btn-row, .st-emotion-cache-shpt8v { display: none !important; }
         body { background: white; padding: 0; }
         .card, .result-panel { box-shadow: none; border: 1px solid #eee; color: black !important; background: white; }
         .res-val, .res-label, .disclaimer, .copyright-tag { color: black !important; }
@@ -127,7 +127,7 @@ def show():
 
         <div class="card">
           <div class="card-title">2-3. 眼动与视野</div>
-          <div class="item"><label>2. 最佳凝视 <span id="v2" class="score-tag score-0">0</span></label><select id="s2" onchange="calc()"><option value="0">0 - 正常</option><option value="1">1 - 部分凝视麻痹： 一眼或双眼出现水平性眼球运动异常（如凝视麻痹），但通过主动性或反射性刺激可以克服</option><option value="2">2 - 完全麻痹 出现强迫性眼球偏斜，且不能通过反射性活动克服</option></select></div>
+          <div class="item"><label>2. 最佳凝视 <span id="v2" class="score-tag score-0">0</span></label><select id="s2" onchange="calc()"><option value="0">0 - 正常</option><option value="1">1 - 部分凝视麻痹</option><option value="2">2 - 完全麻痹</option></select></div>
           <div class="item"><label>3. 视野 <span id="v3" class="score-tag score-0">0</span></label><select id="s3" onchange="calc()"><option value="0">0 - 无缺失</option><option value="1">1 - 部分偏盲</option><option value="2">2 - 完全偏盲</option><option value="3">3 - 双侧偏盲</option></select></div>
         </div>
 
@@ -151,7 +151,7 @@ def show():
           </div>
           <div class="item"><label>8. 感觉 <span id="v8" class="score-tag score-0">0</span></label><select id="s8" onchange="calc()"><option value="0">0 - 正常</option><option value="1">1 - 轻中度</option><option value="2">2 - 重度缺失</option></select></div>
           <div class="item"><label>9. 语言 <span id="v9" class="score-tag score-0">0</span></label><select id="s9" onchange="calc()"><option value="0">0 - 无失语</option><option value="1">1 - 轻中度失语</option><option value="2">2 - 重度失语</option><option value="3">3 - 全失语/哑</option></select></div>
-          <div class="item"><label>10. 构音障碍 <span id="v10" class="score-tag score-0">0</span></label><select id="s10" onchange="calc()"><option value="0">0 - 正常</option><option value="1">1 - 轻中度</option><option value="2">2 - 重度/哑</option><option value="0">UN - 插管/物理障碍(0分)</option></select></div>
+          <div class="item"><label>10. 构音障碍 <span id="v10" class="score-tag score-0">0</span></label><select id="s10" onchange="calc()"><option value="0">0 - 正常</option><option value="1">1 - 轻中度</option><option value="2">2 - 重度/哑</option></select></div>
           <div class="item"><label>11. 忽视 <span id="v11" class="score-tag score-0">0</span></label><select id="s11" onchange="calc()"><option value="0">0 - 无忽视</option><option value="1">1 - 部分忽视</option><option value="2">2 - 严重忽视</option></select></div>
         </div>
       </div>
@@ -159,13 +159,13 @@ def show():
       <div id="coma-form" style="display:none">
         <div class="coma-box">
             <strong>昏迷/无反应患者自动计分：</strong><br>
-            视野(3)、语言(9)、意识(7)、感觉/构音/忽视(6)已根据临床指南自动合计：19分。
+            视野、语言、意识提问、感觉等项已根据指南自动合计：19分。
         </div>
         <div class="card">
             <div class="card-title">昏迷必填项评估</div>
             <div class="item">
                 <label>2. 凝视 (眼头反射) <span id="cv2" class="score-tag score-0">0</span></label>
-                <select id="cs2" onchange="calc()"><option value="0">0 - 正常</option><option value="1">1 - 部分麻痹存在凝视异常，但可通过自主运动或反射性头眼运动纠正</option><option value="2">2 - 完全麻痹眼球偏向一侧，且不能被头眼反射纠正</option></select>
+                <select id="cs2" onchange="calc()"><option value="0">0 - 正常</option><option value="1">1 - 部分麻痹</option><option value="2">2 - 完全麻痹</option></select>
             </div>
             <div class="item">
                 <label>4. 面部动作 (痛刺激) <span id="cv4" class="score-tag score-high">3</span></label>
@@ -181,10 +181,10 @@ def show():
       <div class="result-panel">
         <div class="res-grid">
           <div><div class="res-val" id="total-score">0</div><div class="res-label">NIHSS 总分</div></div>
-          <div><div class="res-val" style="font-size:24px; padding-top:10px" id="severity-label">正常</div><div class="res-label">严重程度划分</div></div>
+          <div><div class="res-val" style="font-size:24px; padding-top:10px" id="severity-label">正常</div><div class="res-label">严重程度</div></div>
         </div>
         <div class="disclaimer">
-          <strong>风险告知：</strong> 本量表仅供临床辅助参考。最终结论由主治医师判定。
+          <strong>风险告知：</strong> 本量表仅供临床辅助参考，最终结论由主治医师判定。
         </div>
         <div class="copyright-tag">版权所有 © 田慧军医生 | 2026 </div>
         <div class="btn-row">
@@ -262,7 +262,11 @@ def show():
     </html>
     """
 
-    components.html(html_content, height=1800, scrolling=True)
+    # 2026 标准：修复 st.iframe 参数，移除不再支持的 scrolling=True
+    b64_html = base64.b64encode(html_content.encode('utf-8')).decode('utf-8')
+    data_url = f"data:text/html;base64,{b64_html}"
+    
+    st.iframe(src=data_url, height=1600)
 
 if __name__ == "__main__":
     show()
